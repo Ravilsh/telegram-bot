@@ -37,7 +37,8 @@ async def handle_all_messages(message: types.Message):
 
 if __name__ == "__main__":
     logger.info("[BOOT] Bot is launching...")
-    try:
+import asyncio
+asyncio.run(bot.delete_webhook(drop_pending_updates=True))
         executor.start_polling(dp, skip_updates=True)
     except Exception as e:
         logger.exception(f"[CRITICAL] Bot crashed with error: {e}")
