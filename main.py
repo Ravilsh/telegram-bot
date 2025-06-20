@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types, executor
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(name)
+logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = "@buyersclubusa"
