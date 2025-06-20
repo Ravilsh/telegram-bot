@@ -1,54 +1,39 @@
-import logging
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.types import Message
 import os
+import logging
+from aiogram import Bot, Dispatcher, types, executor
 
-# Настройка логирования в файл и консоль
+# Настройка логирования в консоль и файл
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format="%(asctime)s - [%(levelname)s] - %(name)s - %(message)s",
     handlers=[
-        logging.FileHandler("logs.txt", encoding='utf-8'),
-        logging.StreamHandler()
+        logging.StreamHandler(),                         # В консоль
+        logging.FileHandler("bot.log", encoding="utf-8") # В файл
     ]
 )
 logger = logging.getLogger(__name__)
 
-# Получаем токен из переменных окружения
-TOKEN = os.getenv("BOT_TOKEN")
+# Токен и ID канала
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHANNEL_ID = "@buyersclubusa"
 
 # Инициализация бота и диспетчера
-bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
-dp = Dispatcher()
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot)
 
 # Обработка команды /start
-@dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    username = message.from_user.username or "unknown"
-    logger.info(f"[START] User: {username} (id={message.from_user.id})")
-    await message.answer(f"👋 Hello, {message.from_user.full_name}")
-"Welcome to Buyer's Club USA Bot!")
+@dp.message_handler(commands=["start"])
+async def start_command(message: types.Message):
+    logger.info(f"[START] User @{message.from_user.username} started the bot.")
+    await message.answer("✨ Buyer's Club USA Bot activated!")
 
-# Обработка всех остальных сообщений
-@dp.message()
-async def echo_handler(message: Message) -> None:
-    username = message.from_user.username or "unknown"
-    logger.info(f"[MESSAGE] From @{username} (id={message.from_user.id}): {message.text}")
-    try:
-        await message.reply("🤖 I'm a bot, I received your message!")
-    except Exception as e:
-        logger.exception(f"[ERROR] Failed to handle message from @{username}: {e}")
+# Обработка любых текстовых сообщений
+@dp.message_handler(content_types=types.ContentType.TEXT)
+async def handle_all_messages(message: types.Message):
+    logger.info(f"[MESSAGE] From @{message.from_user.username}: {message.text}")
+    await message.answer(f"Hello, {message.from_user.full_name}! 👋\nI received your message!")
 
-# Основная функция запуска бота
-async def main():
-    logger.info("[BOOT] Bot is launching...")
-    try:
-        await dp.start_polling(bot, skip_updates=True)
-    except Exception as e:
-        logger.critical(f"[CRITICAL] Bot crashed with error: {e}")
-
+# Запуск бота
 if __name__ == "__main__":
-    asyncio.run(main())
+    logger.info("[BOOT] Bot is launching...")
+    executor.start_polling(dp, skip_updates=True)
