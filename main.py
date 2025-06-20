@@ -30,7 +30,7 @@ async def command_start_handler(message: Message) -> None:
     username = message.from_user.username or "unknown"
     logger.info(f"[START] User: {username} (id={message.from_user.id})")
     await message.answer(f"👋 Hello, {message.from_user.full_name}")
-Welcome to Buyer's Club USA Bot!")
+"Welcome to Buyer's Club USA Bot!")
 
 # Обработка всех остальных сообщений
 @dp.message()
