@@ -17,6 +17,6 @@ async def handle_all_messages(message: types.Message):
     print(f"[MESSAGE] From @{message.from_user.username}: {message.text}")
     await message.answer("I received your message!")
 
-if name == "main":
+if __name__ == "__main__":
     print("[BOOT] Bot is launching...")
     executor.start_polling(dp, skip_updates=True)
