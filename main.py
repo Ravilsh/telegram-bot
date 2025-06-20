@@ -1,7 +1,7 @@
 import os
 from aiogram import Bot, Dispatcher, types, executor
 
-BOT_TOKEN = "8135595978:AAF5clMt2GpsfmtRBHyoHqKCnd_CoLEMtuo"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = "@buyersclubusa"
 
 bot = Bot(token=BOT_TOKEN)
