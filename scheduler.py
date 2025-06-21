@@ -10,9 +10,10 @@ def start_scheduler():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         publish_deals,
-        trigger=IntervalTrigger(hours=1),
-        name="Publish deals every hour",
-        replace_existing=True,
+        "cron",
+        minute=0,  # каждый час в 00 минут
+        id="publish_deals_hourly",
+        replace_existing=True
     )
     scheduler.start()
-    logging.info("⏰ Scheduler started")
+    logging.info("📅 Scheduler started (every hour on the hour)")
