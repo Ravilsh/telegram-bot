@@ -1,15 +1,13 @@
 # main.py
 
-import asyncio
 import logging
 from telegram.ext import Application, CommandHandler
 from dotenv import load_dotenv
 import os
 from scheduler import start_scheduler
 
-# Загрузка переменных из .env
+# Загрузка переменных из .env или среды
 load_dotenv()
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # Настройка логирования
@@ -26,16 +24,15 @@ logging.basicConfig(
 async def start(update, context):
     await update.message.reply_text("🤖 Бот работает. Добро пожаловать!")
 
-async def main():
-    application = Application.builder().token(BOT_TOKEN).build()
+# Создание и запуск приложения
+application = Application.builder().token(BOT_TOKEN).build()
 
-    application.add_handler(CommandHandler("start", start))
+# Добавление хендлеров
+application.add_handler(CommandHandler("start", start))
 
-    # Запуск планировщика публикаций
-    start_scheduler()
-
-    logging.info("🚀 Бот запущен")
-    await application.run_polling()
+# Запуск планировщика
+start_scheduler()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    logging.info("🚀 Бот запущен")
+    application.run_polling()
