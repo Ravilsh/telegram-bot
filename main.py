@@ -1,18 +1,14 @@
-# main.py
-
 import logging
 import os
-import asyncio
 from telegram.ext import Application, CommandHandler
 from dotenv import load_dotenv
 from scheduler import start_scheduler
-from publisher import publish_deals
 
-# Загрузка переменных окружения
+# ── Load .env ───────────────────────
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Настройка логирования
+# ── Logging ─────────────────────────
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -22,24 +18,23 @@ logging.basicConfig(
     ]
 )
 
-# Обработчик команды /start
+# ── /start command ─────────────────
 async def start(update, context):
     await update.message.reply_text("🤖 Бот работает. Добро пожаловать!")
 
-# Создание и запуск приложения
+# ── Init & Start bot properly ──────
 application = Application.builder().token(BOT_TOKEN).build()
-
-# Добавление хендлеров
 application.add_handler(CommandHandler("start", start))
 
-# Запуск планировщика
+# Планировщик запускается сразу
 start_scheduler()
 
-# Ручной запуск публикации при старте для проверки
-async def startup():
-    logging.info("🚀 Бот запущен")
-    await publish_deals()
+# Запуск в фоновом режиме без run_polling()
+async def run():
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    # updater.idle() не нужен на Railway
 
-if __name__ == "__main__":
-    asyncio.run(startup())
-    application.run_polling()
+import asyncio
+asyncio.get_event_loop().create_task(run())
