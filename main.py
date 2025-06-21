@@ -1,40 +1,38 @@
-import logging
-import os
-from telegram.ext import Application, CommandHandler
-from dotenv import load_dotenv
-from scheduler import start_scheduler
+import logging import os from telegram import Update from telegram.ext import ( Application, CommandHandler, ContextTypes ) from dotenv import load_dotenv from scheduler import start_scheduler from coupon_fetcher import fetch_coupon
 
-# ── Load .env ───────────────────────
-load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+── Загрузка переменных окружения ───────────────────────────────────────────
 
-# ── Logging ─────────────────────────
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler("bot.log", encoding="utf-8"),
-        logging.StreamHandler()
-    ]
-)
+load_dotenv() BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# ── /start command ─────────────────
-async def start(update, context):
-    await update.message.reply_text("🤖 Бот работает. Добро пожаловать!")
+── Логирование ─────────────────────────────────────────────────────────────
 
-# ── Init & Start bot properly ──────
+logging.basicConfig( format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO, handlers=[ logging.FileHandler("bot.log", encoding="utf-8"), logging.StreamHandler() ] ) logger = logging.getLogger(name)
+
+── Команда /start ───────────────────────────────────────────────────────────
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: await update.message.reply_text("🤖 Бот работает. Добро пожаловать!")
+
+── Команда /coupon <store> ──────────────────────────────────────────────────
+
+async def coupon(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: if not context.args: await update.message.reply_text("❗ Пожалуйста, укажите магазин. Например: /coupon usa.tommy.com") return
+
+store = context.args[0].lower()
+try:
+    coupon_text = await fetch_coupon(store)
+    if coupon_text:
+        await update.message.reply_text(f"🎟 Купон для {store}:
+
+{coupon_text}") else: await update.message.reply_text(f"🚫 Купоны не найдены для {store}.") except Exception as e: logger.error(f"Ошибка при получении купона: {e}") await update.message.reply_text("❌ Произошла ошибка при получении купона. Попробуйте позже.")
+
+── Запуск ────────────────────────────────────────────────────────────────────
+
+if name == "main": logger.info("🚀 Бот запускается...")
+
 application = Application.builder().token(BOT_TOKEN).build()
+
 application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("coupon", coupon))
 
-# Планировщик запускается сразу
 start_scheduler()
-
-# Запуск в фоновом режиме без run_polling()
-async def run():
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-    # updater.idle() не нужен на Railway
-
-import asyncio
-asyncio.get_event_loop().create_task(run())
+application.run_polling()
+logger.info("✅ Бот запущен")
